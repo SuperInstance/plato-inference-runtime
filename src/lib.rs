@@ -23,7 +23,7 @@
 //! OpenAI-compatible API.
 
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, VecDeque, BinaryHeap};
+use std::collections::{HashMap, VecDeque};
 use std::cmp::Ordering;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -141,11 +141,12 @@ impl InferenceRuntime {
 
     /// Load a model into memory.
     pub fn load_model(&mut self, model_id: &str) -> Result<(), String> {
-        let limits = &self.config.resources;
-        if self.loaded_memory_mb + 500 > limits.max_memory_mb {
+        let max_memory_mb = self.config.resources.max_memory_mb;
+        let max_loaded_models = self.config.resources.max_loaded_models;
+        if self.loaded_memory_mb + 500 > max_memory_mb {
             self.evict_idle()?;
         }
-        if self.models.len() >= limits.max_loaded_models {
+        if self.models.len() >= max_loaded_models {
             self.evict_idle()?;
         }
         self.model_states.insert(model_id.to_string(), ModelState::Loading);
@@ -238,8 +239,8 @@ impl InferenceRuntime {
         let idle: Vec<String> = self.models.iter()
             .filter(|(_, m)| m.loaded && now() - m.last_used > timeout)
             .map(|(id, _)| id.clone()).collect();
-        for id in idle {
-            self.unload_model(&id);
+        for id in &idle {
+            self.unload_model(id);
             self.eviction_count += 1;
         }
         if self.loaded_memory_mb + 500 > self.config.resources.max_memory_mb && idle.is_empty() {
