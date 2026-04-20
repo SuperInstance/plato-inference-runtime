@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+src/plato_inference_runtime/__init__.py
+src/plato_inference_runtime/runtime.py
+src/plato_inference_runtime.egg-info/PKG-INFO
+src/plato_inference_runtime.egg-info/SOURCES.txt
+src/plato_inference_runtime.egg-info/dependency_links.txt
+src/plato_inference_runtime.egg-info/top_level.txt
